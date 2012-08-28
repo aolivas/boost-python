@@ -18,9 +18,6 @@ if (CMAKE_BUILD_TYPE MATCHES "Deb")
   add_definitions(-DBOOST_PYTHON_DEBUG)
 endif()
 
-# set this as necessary
-set(BOOST_ROOT "/usr/local/boost-1.42.0")
-
 find_package(Boost)
 message("Boost headers at ${Boost_INCLUDE_DIRS}")
 
@@ -53,4 +50,37 @@ endmacro()
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+# Can't get this to work properly.  Also there's not an 'uninstall'
+# target, and I find cmake a little clunky for things like this.
+# So as always, I'll turn to python.
+#
+#install(SCRIPT install.cmake)
+#create a file name install.cmake and add the following lines:
+# find_package(Boost)
+# message("Boost headers at ${Boost_INCLUDE_DIRS}")
+# ...
+# -- Could NOT find Boost
+# Boost_INCLUDE_DIRS = Boost_INCLUDE_DIR-NOTFOUND
+# 
+# It's not clear to me why it couldn't find boost
+# in the install.cmake script since it could find it just
+# fine above.
+
+add_custom_target(install ${CMAKE_CURRENT_SOURCE_DIR}/install.py 
+  "-i${Boost_INCLUDE_DIRS}" 
+  "-l${Boost_LIBRARY_DIRS}"
+  "-I${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "-L${CMAKE_CURRENT_BINARY_DIR}/lib")
+
+add_custom_target(uninstall ${CMAKE_CURRENT_SOURCE_DIR}/install.py 
+  "--uninstall"
+  "-i${Boost_INCLUDE_DIRS}" 
+  "-l${Boost_LIBRARY_DIRS}")
+
+add_custom_target(check_install ${CMAKE_CURRENT_SOURCE_DIR}/install.py 
+  "--check_installation"
+  "-i${Boost_INCLUDE_DIRS}" 
+  "-l${Boost_LIBRARY_DIRS}")
+
 
